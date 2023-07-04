@@ -1,4 +1,4 @@
-#TG bot 
+#TG bot
 
 import datetime as dt
 from telebot import types
@@ -24,6 +24,14 @@ def start(message):
     x = random.choice(x)
     bot.send_message(message.chat.id, x + f'Время по МСК: {now}')
 
+@bot.message_handler(commands=['cocktail'])
+def get_everyday_photo(message):
+    try:
+        bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo, timeout=5)
+        #bot.send_message(message.chat.id, get_random_cocktail())
+    except:
+        bot.send_message(message.chat.id, 'что-то пошло не по плану')
+
 
 @bot.message_handler(commands=['day'])
 def get_everyday_photo(message):
@@ -38,7 +46,7 @@ def buttons(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton("€/₽ EUR/RUB")
     btn2 = types.KeyboardButton('$/₽ USD/RUB')
-    btn3 = types.KeyboardButton('/day')
+    btn3 = types.KeyboardButton('Рандомное фото дня NASA')
     markup.add(btn1, btn2, btn3)
     bot.send_message(message.from_user.id, " Выберите что либо: ", reply_markup=markup)
 
@@ -52,7 +60,6 @@ def message_reply(message):
         usd = bs.find('td', 'pid-2186-high')
         bot.send_message(message.chat.id, f'1$ = {usd.text} ₽')
 
-#***********************************************************************************************************
 def str_time_prop(start, end, time_format, prop):
     stime = time.mktime(time.strptime(start, time_format))
     etime = time.mktime(time.strptime(end, time_format))
@@ -71,7 +78,24 @@ def get_photo_from_nasa():
     # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
     data = json.loads(data_json.text)
     return data.get('url')
-#*************************************************************************************************************
+
+def get_random_cocktail():
+    data_json = requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic')
+    data = json.loads((data_json.text))
+    name = data.get('strDrink')
+    data_json_1 = requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}')
+    data_1 = json.loads((data_json_1.text))
+    recipe = data_1.get('strInstructions')
+    return name, recipe
+
+    def random_cocktail_photo():
+        data_json = requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic')
+        data = json.loads((data_json.text))
+        photo = data.get('strDrinkThumb')
+        return photo
+
+
+
 
 
 
