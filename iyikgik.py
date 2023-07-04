@@ -1,4 +1,4 @@
-# TGbot
+#TG bot
 
 import datetime as dt
 from telebot import types
@@ -10,11 +10,11 @@ from bs4 import BeautifulSoup
 token = '6157829694:AAGQ4crNBbsTQpv4Z7P0F43b3CR_GfZvQa8'
 bot = telebot.TeleBot(token)
 
-def parser():
-    url = 'https://ru.investing.com/currencies/'
-    response = requests.get(url)
-    print(response)
-    bs = BeautifulSoup(response.text,"lxml")
+
+url = 'https://ru.investing.com/currencies/'
+response = requests.get(url)
+print(response)
+bs = BeautifulSoup(response.text,"lxml")
 
 
 @bot.message_handler(commands=["start"])
@@ -67,7 +67,7 @@ def random_date(start, end, prop):
 
 
 def get_photo_from_nasa():
-    data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=DEMO_KEY'))
+    data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
     # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
     data = json.loads(data_json.text)
     return data.get('url')
