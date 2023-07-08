@@ -1,11 +1,10 @@
-#TG bot
-
 import datetime as dt
 from telebot import types
 import telebot, random, requests, json, time
 from bs4 import BeautifulSoup
 # https://api.nasa.gov/planetary/apod?date=YYYY-MM-DD&api_key=DEMO_KEY
 # https://api.nasa.gov/
+
 
 token = '6157829694:AAGQ4crNBbsTQpv4Z7P0F43b3CR_GfZvQa8'
 bot = telebot.TeleBot(token)
@@ -14,21 +13,27 @@ bot = telebot.TeleBot(token)
 url = 'https://ru.investing.com/currencies/'
 response = requests.get(url)
 print(response)
-bs = BeautifulSoup(response.text,"lxml")
+bs = BeautifulSoup(response.text, "lxml")
 
 
 @bot.message_handler(commands=["start"])
 def start(message):
     now = dt.datetime.now()
-    x = ['Hello! ', 'HI！', 'Привет！', '你們好! ','¡Hola! ']
+    x = ['Hello! ', 'HI！', 'Привет！', '你們好! ', '¡Hola! ']
     x = random.choice(x)
     bot.send_message(message.chat.id, x + f'Время по МСК: {now}')
 
+
 @bot.message_handler(commands=['cocktail'])
 def get_everyday_photo(message):
+    otvet = types.InlineKeyboardMarkup(row_width=2)
+    button1 = types.InlineKeyboardButton("Рецепт", callback_data='Recipe')
+    button2 = types.InlineKeyboardButton("Следующий", callback_data='Next')
+    otvet.add(button1,button2)
+    data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text).get('drinks')
+    index = random.randint(0, len(data))
     try:
-        bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo, timeout=5)
-        #bot.send_message(message.chat.id, get_random_cocktail())
+        bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(data[index]), caption=get_random_cocktail(data[index]), reply_markup=otvet, timeout=5)
     except:
         bot.send_message(message.chat.id, 'что-то пошло не по плану')
 
@@ -60,6 +65,7 @@ def message_reply(message):
         usd = bs.find('td', 'pid-2186-high')
         bot.send_message(message.chat.id, f'1$ = {usd.text} ₽')
 
+
 def str_time_prop(start, end, time_format, prop):
     stime = time.mktime(time.strptime(start, time_format))
     etime = time.mktime(time.strptime(end, time_format))
@@ -79,24 +85,34 @@ def get_photo_from_nasa():
     data = json.loads(data_json.text)
     return data.get('url')
 
-def get_random_cocktail():
-    data_json = requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic')
-    data = json.loads((data_json.text))
+# name = data.get('strDrink')
+# data_1 = json.loads(requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}').text)
+# recipe: str = data_1.get('drinks')[0].get('strInstructions')
+
+
+def get_random_cocktail(data: dict):
+    # data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
     name = data.get('strDrink')
-    data_json_1 = requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}')
-    data_1 = json.loads((data_json_1.text))
-    recipe = data_1.get('strInstructions')
-    return name, recipe
+    data_1 = json.loads(requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}').text)
 
-    def random_cocktail_photo():
-        data_json = requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic')
-        data = json.loads((data_json.text))
-        photo = data.get('strDrinkThumb')
-        return photo
+    while True:
+        for i in range(1, 15):
+            ingredients: str = data_1.get('drinks')[0].get("strIngredient" + str(i))
+            if ingredients is None:
+                exit()
+
+        ingredients_1 = f'''Name: {name}
+        **************************************
+        Ingredients: {ingredients}'''
+
+        return ingredients_1
 
 
-
-
+def random_cocktail_photo(data: dict):
+    # data_2 = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
+    photo = data.get('strDrinkThumb')
+    return photo
 
 
 bot.infinity_polling()
+
