@@ -14,7 +14,7 @@ bot = telebot.TeleBot(token)
 url = 'https://ru.investing.com/currencies/'
 response = requests.get(url)
 print(response)
-bs = BeautifulSoup(response.text,"lxml")
+bs = BeautifulSoup(response.text, "lxml")
 
 
 @bot.message_handler(commands=["start"])
@@ -26,16 +26,30 @@ def start(message):
 
     bot.send_message(message.chat.id, x + f'Время по МСК: {now}')
 
-@bot.message_handler(commands=['cocktail'])
-def get_everyday_photo(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    btn1 = types.KeyboardButton("€/₽ EUR/RUB")
+    btn2 = types.KeyboardButton('$/₽ USD/RUB')
+    btn3 = types.KeyboardButton('Рандомное фото дня NASA')
+    btn4 = types.KeyboardButton('Рандомный коктейль')
+    markup.add(btn1, btn2, btn3, btn4)
 
+    bot.send_message(message.from_user.id, " Выберите что либо: ", reply_markup=markup)
+
+
+@bot.message_handler(commands=['cocktail'])
+def get_cocktail(message):
     data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
-    index = random.randint(0, len(data.get('drinks')))
+    index = random.randint(0, len(data.get('drinks')) - 1)
+
+    markup_recipe = types.InlineKeyboardMarkup(row_width=2)
+    button1 = types.InlineKeyboardButton("Recipe", callback_data=index)
+    button2 = types.InlineKeyboardButton("×", callback_data=index)
+    markup_recipe.add(button1, button2)
 
     try:
-        bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(index), caption= get_random_cocktail(index), reply_markup=recipe_buttons(), timeout=5)
-        #bot.send_message(message.chat.id, get_random_cocktail())
 
+        bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(index), caption=get_random_cocktail(index), reply_markup=markup_recipe, timeout=5)
+        #bot.send_message(message.chat.id, get_random_cocktail())
     except:
         bot.send_message(message.chat.id, 'что-то пошло не по плану')
 
@@ -44,7 +58,7 @@ def get_everyday_photo(message):
 def get_everyday_photo(message):
 
     try:
-        bot.send_photo(chat_id=message.chat.id, photo=get_photo_from_nasa(), timeout=5)
+        bot.send_photo(chat_id=message.chat.id, photo=get_photo_from_nasa(), caption=get_date_from_nasa(), timeout=5)
 
     except:
         bot.send_message(message.chat.id, 'что-то пошло не по плану')
@@ -64,18 +78,45 @@ def buttons(message):
 @bot.message_handler(content_types='text')
 def message_reply(message):
 
+    data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
+    index = random.randint(0, len(data.get('drinks')) - 1)
+    markup_recipe = types.InlineKeyboardMarkup(row_width=2)
+    button1 = types.InlineKeyboardButton("Recipe", callback_data=index)
+    button2 = types.InlineKeyboardButton("×", callback_data=index)
+    markup_recipe.add(button1, button2)
+
     if message.text == '€/₽ EUR/RUB':
-        euro = bs.find('td', 'pid-1691-high')
-        bot.send_message(message.chat.id, f'1€ = {euro.text} ₽')
+
+        try:
+            euro = bs.find('td', 'pid-1691-high')
+            bot.send_message(message.chat.id, f'1€ = {euro.text} ₽')
+
+        except:
+            bot.send_message(message.chat.id, 'что-то пошло не по плану')
 
     elif message.text == '$/₽ USD/RUB':
-        usd = bs.find('td', 'pid-2186-high')
-        bot.send_message(message.chat.id, f'1$ = {usd.text} ₽')
+
+        try:
+            usd = bs.find('td', 'pid-2186-high')
+            bot.send_message(message.chat.id, f'1$ = {usd.text} ₽')
+
+        except:
+            bot.send_message(message.chat.id, 'что-то пошло не по плану')
 
     elif message.text == 'Рандомное фото дня NASA':
-        try:
-            bot.send_photo(chat_id=message.chat.id, photo=get_photo_from_nasa(), timeout=5)
 
+        try:
+            bot.send_photo(chat_id=message.chat.id, photo=get_photo_from_nasa(), caption=get_date_from_nasa(), timeout=5)
+
+        except:
+            bot.send_message(message.chat.id, 'что-то пошло не по плану')
+
+    elif message.text == 'Рандомный коктейль':
+
+        try:
+
+            bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(index),caption=get_random_cocktail(index), reply_markup=markup_recipe, timeout=5)
+            # bot.send_message(message.chat.id, get_random_cocktail())
         except:
             bot.send_message(message.chat.id, 'что-то пошло не по плану')
 
@@ -97,7 +138,19 @@ def get_photo_from_nasa():
     data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
     # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
     data = json.loads(data_json.text)
+
     return data.get('url')
+
+def get_date_from_nasa():
+    data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
+    # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
+    data = json.loads(data_json.text)
+    data_1 = data.get('date')
+    data_2 = data.get('explanation')
+    response = f'''Photo date: {data_1}
+    
+Explanation: {data_2}'''
+    return response
 
 
 def random_cocktail_photo(index):
@@ -109,6 +162,7 @@ def random_cocktail_photo(index):
 def get_random_cocktail(index):
 
     global k, h
+
     data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
     name = data.get('drinks')[index].get('strDrink')
     data_1 = json.loads(requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}').text)
@@ -129,36 +183,31 @@ def get_random_cocktail(index):
 
 
     al = f'''Name: {name}
-====================================================
+====================================
 Ingredients: {h}'''
 
     return al
 
 
 def recipe(index):
-    data = json.loads(
-    requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
+    data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
     name = data.get('drinks')[index].get('strDrink')
     data_1 = json.loads(requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}').text)
-    recipe = data_1.get('drinks')[index].get('strInstructions')
-    return recipe
+    recipe = data_1.get('drinks')[0].get('strInstructions')
+    recipe_1 = str(recipe)
+
+    return recipe_1
 
 
-def recipe_buttons():
-    otvet = types.InlineKeyboardMarkup(row_width=2)
-    button1 = types.InlineKeyboardButton("Recipe", callback_data='1')
-    button2 = types.InlineKeyboardButton("1", callback_data='0')
-    otvet.add(button1, button2)
-    return otvet
-
-
-@bot.callback_query_handler(func=lambda index, call: True  )
-def callback_inline(call, index):
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
     if call.message:
-        if call.data == "0":
-            bot.send_message(call.message.chat.id, "1")
-        elif call.data == "1":
-            bot.send_message(call.message.chat.id, f"Recipe: {recipe(index)}")
+        try:
+            bot.send_message(call.message.chat.id, f'Recipe: {recipe(int(call.data))}')
+
+        except:
+            bot.send_message(call.message.chat.id, "Error in CallBack_query...")
+
 
 bot.infinity_polling()
 
