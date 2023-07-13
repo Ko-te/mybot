@@ -1,15 +1,16 @@
-#TG bot
-
+# TG bot
+from work import *
+from telebot import types
+import telebot, random, requests, json
+from bs4 import BeautifulSoup
 import datetime as dt
 from telebot import types
-import telebot, random, requests, json, time
-from bs4 import BeautifulSoup
+
 # https://api.nasa.gov/planetary/apod?date=YYYY-MM-DD&api_key=DEMO_KEY
 # https://api.nasa.gov/
 
 token = '6157829694:AAGQ4crNBbsTQpv4Z7P0F43b3CR_GfZvQa8'
 bot = telebot.TeleBot(token)
-
 
 url = 'https://ru.investing.com/currencies/'
 response = requests.get(url)
@@ -19,9 +20,8 @@ bs = BeautifulSoup(response.text, "lxml")
 
 @bot.message_handler(commands=["start"])
 def start(message):
-
     now = dt.datetime.now()
-    x = ['Hello! ', 'HI！', 'Привет！', '你們好! ','¡Hola! ']
+    x = ['Hello! ', 'HI！', 'Привет！', '你們好! ', '¡Hola! ']
     x = random.choice(x)
 
     bot.send_message(message.chat.id, x + f'Время по МСК: {now}')
@@ -36,6 +36,7 @@ def start(message):
     bot.send_message(message.from_user.id, " Выберите что либо: ", reply_markup=markup)
 
 
+
 @bot.message_handler(commands=['cocktail'])
 def get_cocktail(message):
     data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
@@ -48,15 +49,15 @@ def get_cocktail(message):
 
     try:
 
-        bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(index), caption=get_random_cocktail(index), reply_markup=markup_recipe, timeout=5)
-        #bot.send_message(message.chat.id, get_random_cocktail())
+        bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(index), caption=get_random_cocktail(index),
+                       reply_markup=markup_recipe, timeout=5)
+        # bot.send_message(message.chat.id, get_random_cocktail())
     except:
         bot.send_message(message.chat.id, 'что-то пошло не по плану')
 
 
 @bot.message_handler(commands=['day'])
 def get_everyday_photo(message):
-
     try:
         bot.send_photo(chat_id=message.chat.id, photo=get_photo_from_nasa(), caption=get_date_from_nasa(), timeout=5)
 
@@ -77,7 +78,6 @@ def buttons(message):
 
 @bot.message_handler(content_types='text')
 def message_reply(message):
-
     data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
     index = random.randint(0, len(data.get('drinks')) - 1)
     markup_recipe = types.InlineKeyboardMarkup(row_width=2)
@@ -106,7 +106,8 @@ def message_reply(message):
     elif message.text == 'Рандомное фото дня NASA':
 
         try:
-            bot.send_photo(chat_id=message.chat.id, photo=get_photo_from_nasa(), caption=get_date_from_nasa(), timeout=5)
+            bot.send_photo(chat_id=message.chat.id, photo=get_photo_from_nasa(), caption=get_date_from_nasa(),
+                           timeout=5)
 
         except:
             bot.send_message(message.chat.id, 'что-то пошло не по плану')
@@ -115,88 +116,13 @@ def message_reply(message):
 
         try:
 
-            bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(index),caption=get_random_cocktail(index), reply_markup=markup_recipe, timeout=5)
+            bot.send_photo(chat_id=message.chat.id, photo=random_cocktail_photo(index),
+                           caption=get_random_cocktail(index), reply_markup=markup_recipe, timeout=5)
             # bot.send_message(message.chat.id, get_random_cocktail())
         except:
             bot.send_message(message.chat.id, 'что-то пошло не по плану')
 
 
-def str_time_prop(start, end, time_format, prop):
-    stime = time.mktime(time.strptime(start, time_format))
-    etime = time.mktime(time.strptime(end, time_format))
-
-    ptime = stime + prop * (etime - stime)
-
-    return time.strftime(time_format, time.localtime(ptime))
-
-
-def random_date(start, end, prop):
-    return str_time_prop(start, end, '%Y-%m-%d', prop)
-
-
-def get_photo_from_nasa():
-    data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
-    # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
-    data = json.loads(data_json.text)
-
-    return data.get('url')
-
-def get_date_from_nasa():
-    data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
-    # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
-    data = json.loads(data_json.text)
-    data_1 = data.get('date')
-    data_2 = data.get('explanation')
-    response = f'''Photo date: {data_1}
-    
-Explanation: {data_2}'''
-    return response
-
-
-def random_cocktail_photo(index):
-    data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
-    photo = data.get('drinks')[index].get('strDrinkThumb')
-    return photo
-
-
-def get_random_cocktail(index):
-
-    global k, h
-
-    data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
-    name = data.get('drinks')[index].get('strDrink')
-    data_1 = json.loads(requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}').text)
-
-    a = []
-
-    for j in range(0, 15):
-        ingredients = data_1.get('drinks')[0].get(f'strIngredient{j}')
-        if ingredients is not None:
-            a.append(ingredients)
-        else:
-            j += 1
-
-    h = ''
-
-    for i in range(len(a)):
-        h = h + ''.join(a[i]) + ' '
-
-
-    al = f'''Name: {name}
-====================================
-Ingredients: {h}'''
-
-    return al
-
-
-def recipe(index):
-    data = json.loads(requests.get('https://www.thecocktaildb.com/api/json/v1/1/filter.php?a=Non_Alcoholic').text)
-    name = data.get('drinks')[index].get('strDrink')
-    data_1 = json.loads(requests.get(f'https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}').text)
-    recipe = data_1.get('drinks')[0].get('strInstructions')
-    recipe_1 = str(recipe)
-
-    return recipe_1
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -210,4 +136,3 @@ def callback_inline(call):
 
 
 bot.infinity_polling()
-
