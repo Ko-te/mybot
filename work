@@ -59,8 +59,7 @@ def random_date(start, end, prop):
 
 
 def get_photo_from_nasa():
-    data_json = requests.get((
-                                 f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
+    data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
     # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
     data = json.loads(data_json.text)
 
@@ -68,8 +67,7 @@ def get_photo_from_nasa():
 
 
 def get_date_from_nasa():
-    data_json = requests.get((
-                                 f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
+    data_json = requests.get((f'https://api.nasa.gov/planetary/apod?date={random_date("2016-1-1", "2023-1-1", random.random())}&api_key=E5xv6az3dPxh97JHtqCr7SASt0pocF8TR7xIqD3F'))
     # (f'https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
     data = json.loads(data_json.text)
     data_1 = data.get('date')
