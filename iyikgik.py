@@ -9,7 +9,7 @@ from telebot import types
 # https://api.nasa.gov/planetary/apod?date=YYYY-MM-DD&api_key=DEMO_KEY
 # https://api.nasa.gov/
 
-token = '6157829694:AAGQ4crNBbsTQpv4Z7P0F43b3CR_GfZvQa8'
+token = ''
 bot = telebot.TeleBot(token)
 
 url = 'https://ru.investing.com/currencies/'
